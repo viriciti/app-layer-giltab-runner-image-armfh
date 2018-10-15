@@ -1,0 +1,17 @@
+stages:
+  - build
+
+build:
+  stage: build
+  script:
+    - docker login -u builder -p $BUILDER_TOKEN docker.viriciti.com
+    - TAG=( ${CI_BUILD_TAG//[-.]/ } )
+    - docker build --build-arg NPM_USER=${NPM_USER} --build-arg NPM_PASS=${NPM_PASS} --build-arg NPM_EMAIL=${NPM_EMAIL} -t $CI_REGISTRY_IMAGE .
+    - docker push $CI_REGISTRY_IMAGE
+    - docker tag $CI_REGISTRY_IMAGE $CI_REGISTRY_IMAGE:$CI_BUILD_TAG
+    - docker push $CI_REGISTRY_IMAGE:$CI_BUILD_TAG
+    - docker tag $CI_REGISTRY_IMAGE $CI_REGISTRY_IMAGE:${TAG[0]}
+    - docker push $CI_REGISTRY_IMAGE:${TAG[0]}
+
+  only:
+    - tags
